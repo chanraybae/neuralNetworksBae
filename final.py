@@ -13,7 +13,8 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
+# with all of these packages installed, the folders for test, train, and valid should be in the same directory as the test.py
+# the run time took about 7 minutes for my computer, so please be advised
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
