@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 tf.config.run_functions_eagerly(True)
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, Dropout, BatchNormalization
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, Dropout, BatchNormalization, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.utils import to_categorical
@@ -129,34 +129,52 @@ def print_data_shapes(x_train, y_train, x_test, y_test, x_valid, y_valid):
     print("x_valid shape:", x_valid.shape)
     print("y_valid shape:", y_valid.shape)
 
-# Defining the CNN model, adjusted as accuracy was initially too low
+
+# Defining the CNN model architecture, adjusted as accuracy was initially too low
+# Adding dropout layers to assist in preventing overfitting
 model = Sequential()
-model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(IMAGE_SIZE, IMAGE_SIZE, 1)))
+model.add(Conv2D(64, (3, 3), activation='relu', input_shape=(IMAGE_SIZE, IMAGE_SIZE, 1)))
 model.add(MaxPooling2D((2, 2)))
 model.add(BatchNormalization())
-model.add(Conv2D(64, (3, 3), activation='relu'))
-model.add(MaxPooling2D((2, 2)))
-model.add(BatchNormalization())
+model.add(Dropout(0.25))
+
 model.add(Conv2D(128, (3, 3), activation='relu'))
 model.add(MaxPooling2D((2, 2)))
 model.add(BatchNormalization())
+model.add(Dropout(0.25))
+
+model.add(Conv2D(256, (3, 3), activation='relu'))
+model.add(MaxPooling2D((2, 2)))
+model.add(BatchNormalization())
+model.add(Dropout(0.25))
+
+model.add(Conv2D(512, (3, 3), activation='relu'))
+model.add(MaxPooling2D((2, 2)))
+model.add(BatchNormalization())
+model.add(Dropout(0.25))
+
+# Flattening similar in concept to our Practical
 model.add(Flatten())
-model.add(Dense(256, activation='relu'))
-model.add(Dropout(0.4))
+model.add(Dense(512, activation='relu'))
+model.add(Dropout(0.5))
 model.add(Dense(26, activation='softmax'))
 
 print_data_shapes(x_train, y_train, x_test, y_test, x_valid, y_valid)
 
 # Compiling the model
-model.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
 
-# Configure early stopping and checkpointing
-early_stopping = EarlyStopping(monitor='val_loss', patience=20)
+# Configuring early stopping and checkpointing
+early_stopping = EarlyStopping(monitor='val_loss', patience=50)
 model_checkpoint = ModelCheckpoint('best_model.h5', monitor='val_loss', save_best_only=True)
 
 # Data augmentation (ChatGPT suggested as mentioned below)
 data_generator = ImageDataGenerator(rotation_range=10, width_shift_range=0.1,
                                     height_shift_range=0.1, zoom_range=0.1, horizontal_flip=True)
+
+# Applying a learning rate scheduler
+lr_scheduler = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=0.00001)
+
 
 # Training the model, enhanced from basic to data augmented using ChatGPT
 history = model.fit(data_generator.flow(x_train, y_train, batch_size=32),
