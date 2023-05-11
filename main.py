@@ -50,7 +50,7 @@ datagen = ImageDataGenerator(rotation_range=20, width_shift_range=0.1, height_sh
 datagen.fit(X_train)
 
 # Train the model with the augmented data
-model.fit(datagen.flow(X_train, y_train, batch_size=32), epochs=15, validation_data=(X_test, y_test))
+model.fit(datagen.flow(X_train, y_train, batch_size=32), epochs=30, validation_data=(X_test, y_test))
 
 # Evaluating the model on the test set
 test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
